@@ -2,14 +2,14 @@ module Rets
   module Metadata
     class TableFactory
       def self.build(table_fragment, resource)
-        enum?(table_fragment) ? LookupTable.new(table_fragment, resource) : Table.new(table_fragment, resource)
+        enum?(table_fragment, resource) ? LookupTable.new(table_fragment, resource) : Table.new(table_fragment, resource)
       end
 
-      def self.enum?(table_fragment)
+      def self.enum?(table_fragment, resource)
         lookup_value   = table_fragment["LookupName"].strip
         interpretation = table_fragment["Interpretation"].strip
 
-        interpretation =~ /Lookup/ && !lookup_value.empty?
+        (interpretation =~ /Lookup/ && !lookup_value.empty?) || resource.lookup_types.has_key?(table_fragment["SystemName"])
       end
     end
 
@@ -66,7 +66,7 @@ module Rets
       end
 
       def lookup_types
-        resource.lookup_types[lookup_name]
+        resource.lookup_types[!lookup_name.empty? ? lookup_name : name]
       end
 
       def print_tree
